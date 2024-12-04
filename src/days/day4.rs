@@ -33,20 +33,20 @@ pub fn part2() {
     for (_, [first, second]) in re.captures_iter(&split[0]).map(|caps| caps.extract()) {
         let a: i32 = first.parse().unwrap();
         let b: i32 = second.parse().unwrap();
-    
+
         result += a * b;
     }
-    
+
     for x in split.iter().skip(1) {
         let a: Vec<&str> = x.split("do()").collect();
-        
+
         println!("do split {x:?}");
-        
+
         for y in a.iter().skip(1) {
             for (_, [first, second]) in re.captures_iter(y).map(|caps| caps.extract()) {
                 let a: i32 = first.parse().unwrap();
                 let b: i32 = second.parse().unwrap();
-    
+
                 result += a * b;
             }
         }

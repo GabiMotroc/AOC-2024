@@ -1,6 +1,6 @@
-use crate::days::day3;
+use crate::days::day4;
 
 mod days;
 fn main() {
-    day3::part1();
+    day4::part1();
 }
