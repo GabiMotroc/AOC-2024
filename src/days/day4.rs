@@ -1,56 +1,135 @@
 use std::io::stdin;
-use regex::Regex;
 
 pub fn part1() {
-    let mut result: i32 = 0;
-    let re = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
-    stdin().lines()
-        .for_each(|line|
-            {
-                for (_, [first, second]) in re.captures_iter(&line.unwrap()).map(|caps| caps.extract()) {
-                    let a: i32 = first.parse().unwrap();
-                    let b: i32 = second.parse().unwrap();
+    let rows: Vec<Vec<char>> = stdin()
+        .lines()
+        .map(|l| l.unwrap().chars().collect::<Vec<char>>())
+        .collect();
 
-                    result += a * b;
-                }
-            }
-        );
+    let height = rows.len();
+    let width = rows[0].len();
 
-    println!("{result:?}");
-}
+    let mut result = 0;
 
-pub fn part2() {
-    let mut result: i32 = 0;
-    let re = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
+    result += reverse_and_count(&rows);
 
-    let line: String = stdin().lines().map(|l| l.unwrap().to_string())
-        .collect::<Vec<String>>()
-        .join("");
+    let mut transposed = vec![vec![' '; height]; width];
 
-    let split: Vec<&str> = line.split("don't()").collect();
-
-    println!("{split:?}");
-    for (_, [first, second]) in re.captures_iter(&split[0]).map(|caps| caps.extract()) {
-        let a: i32 = first.parse().unwrap();
-        let b: i32 = second.parse().unwrap();
-
-        result += a * b;
-    }
-
-    for x in split.iter().skip(1) {
-        let a: Vec<&str> = x.split("do()").collect();
-
-        println!("do split {x:?}");
-
-        for y in a.iter().skip(1) {
-            for (_, [first, second]) in re.captures_iter(y).map(|caps| caps.extract()) {
-                let a: i32 = first.parse().unwrap();
-                let b: i32 = second.parse().unwrap();
-
-                result += a * b;
-            }
+    for i in 0..height {
+        for y in 0..width{
+            transposed[y][i] = rows[i][y];
         }
     }
+    result += reverse_and_count(&transposed);
+    
+    let primary_diagonal = primary_diagonals(&rows);
+    result += reverse_and_count(&primary_diagonal);
 
+    let secondary_diagonal = secondary_diagonals(&rows);
+    result += reverse_and_count(&secondary_diagonal);
+
+    println!("{rows:?}");
+    println!("{transposed:?}");
+    println!("{primary_diagonal:?}");
+    println!("{secondary_diagonal:?}");
     println!("{result:?}");
 }
+
+fn primary_diagonals(rows: &Vec<Vec<char>>) -> Vec<Vec<char>> {
+    let height = rows.len();
+    let width: i32 = rows[0].len() as i32;
+    let mut diagonals: Vec<Vec<char>> = Vec::new();
+
+    for col in 0..width {
+        let mut diagonal = Vec::new();
+        let mut i = 0;
+        let mut j: i32 = col;
+        while i < height && j >= 0 {
+            diagonal.push(rows[i][j as usize]);
+            i += 1;
+            j -= 1;
+        }
+        diagonals.push(diagonal);
+    }
+
+    for row in 1..height {
+        let mut diagonal = Vec::new();
+        let mut i = row;
+        let mut j = width - 1;
+        while i < height && j as isize >= 0 {
+            diagonal.push(rows[i][j as usize]);
+            i += 1;
+            j -= 1;
+        }
+        diagonals.push(diagonal);
+    }
+
+    diagonals
+}
+
+fn secondary_diagonals(rows: &Vec<Vec<char>>) -> Vec<Vec<char>> {
+    let height = rows.len();
+    let width = rows[0].len();
+    let mut diagonals: Vec<Vec<char>> = Vec::new();
+
+    for col in (0..width).rev() {
+        let mut diagonal = Vec::new();
+        let mut i = 0;
+        let mut j = col;
+        while i < height && j < width {
+            diagonal.push(rows[i][j]);
+            i += 1;
+            j += 1;
+        }
+        diagonals.push(diagonal);
+    }
+
+    for row in 1..height {
+        let mut diagonal = Vec::new();
+        let mut i = row;
+        let mut j = 0;
+        while i < height && j < width {
+            diagonal.push(rows[i][j]);
+            i += 1;
+            j += 1;
+        }
+        diagonals.push(diagonal);
+    }
+
+    diagonals
+}
+
+fn reverse_and_count(rows: &Vec<Vec<char>>) -> i32 {
+    let mut result = 0;
+    for row in rows.clone() {
+        result += count(row)
+    }
+
+    for row in rows.clone() {
+        result += count(row.into_iter().rev().collect::<Vec<char>>())
+    }
+    result
+}
+
+fn count_matrix(m: Vec<Vec<char>>) -> i32 {
+    m.into_iter().map(count)
+        .sum()
+}
+
+fn count(s: Vec<char>) -> i32 {
+    s.windows(4)
+        .filter(|&w| w.iter().collect::<String>() == *"XMAS")
+        .count() as i32
+}
+
+pub fn part2() {}
+
+/*
+S..S..S
+.A.A.A.
+..MMM..
+SAMXMAS
+.AMMM..
+.A.A.A.
+S..S..S
+ */
